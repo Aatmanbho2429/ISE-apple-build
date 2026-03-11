@@ -1,26 +1,50 @@
 import json
 from tkinter import filedialog
+import tkinter as tk
 import os
 import platform
 import subprocess
 from app.config import IMAGE_EXTENSIONS_FOR_FILE
 from app.core.progress import get_progress
-from app.services import search_service, license_service,sync_service
+from app.services import search_service, license_service, sync_service
 from app.services import folder_status_service
 from app.core import database as db
 
+
+def _make_tk_root():
+    """
+    Creates a hidden Tk root window that is brought to the foreground.
+    Required on macOS to prevent the file/folder dialog from crashing
+    or appearing behind the main window.
+    """
+    root = tk.Tk()
+    root.withdraw()
+    root.wm_attributes('-topmost', True)
+    # On macOS, force the dialog to the front
+    if platform.system() == "Darwin":
+        root.lift()
+        root.focus_force()
+    return root
+
+
 class Api:
     def selectFile(self):
-        return filedialog.askopenfilename(
+        root = _make_tk_root()
+        result = filedialog.askopenfilename(
             title="Select an image",
             filetypes=(
                 ("Image files", IMAGE_EXTENSIONS_FOR_FILE),
                 ("All files", "*.*")
             )
         )
+        root.destroy()
+        return result
 
     def selectFolder(self):
-        return filedialog.askdirectory(title="Select a folder")
+        root = _make_tk_root()
+        result = filedialog.askdirectory(title="Select a folder")
+        root.destroy()
+        return result
 
     def validateLicense(self):
         return json.dumps(license_service.validate().__dict__)
@@ -30,6 +54,7 @@ class Api:
 
     def get_progress(self):
         return json.dumps(get_progress())
+
     def openFilePath(self, path):
         path = os.path.abspath(path)
         folder = os.path.dirname(path)
@@ -44,8 +69,10 @@ class Api:
         except Exception:
             pass
         return True
+
     def get_folder_statuses(self):
         return json.dumps(folder_status_service.get_folder_statuses())
+
     def sync_folder(self, folder_path: str):
         """Index all unindexed images in folder without running a search."""
         import json
@@ -65,7 +92,7 @@ class Api:
         )
         response.code = 207 if response.data["errors"] else 200
         return json.dumps(response.__dict__, indent=2)
-    
+
     def get_thumbnail(self, path: str) -> str:
         """
         Converts any image (PSB, TIFF, JPG, PNG) to a base64 JPEG data URL.
@@ -78,7 +105,7 @@ class Api:
 
         try:
             img = load_image_fast(path)
-            img.thumbnail((400, 400))          # resize for display — no need to send full res
+            img.thumbnail((400, 400))
             buf = io.BytesIO()
             img.save(buf, format="JPEG", quality=85)
             b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
@@ -86,7 +113,7 @@ class Api:
         except Exception as e:
             # print(f"[thumbnail] failed for {path}: {e}", flush=True)
             return "error"
-        
+
     def getDeviceId(self):
         from app.services.license_service import get_device_id
         return get_device_id()
