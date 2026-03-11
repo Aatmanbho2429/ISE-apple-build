@@ -1,0 +1,84 @@
+<div class="app-shell" [class.sidebar-collapsed]="isSidebarCollapsed">
+
+    <aside class="sidebar" [class.collapsed]="isSidebarCollapsed">
+        <div class="sidebar__logo">
+            <!-- Full horizontal logo — visible when expanded -->
+            <img src="assets/images/visara-logo-horizontal.svg" alt="Visara" />
+
+            <!-- Small icon mark — visible when collapsed -->
+            <div class="sidebar__logo__icon"></div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li routerLinkActive="active">
+                    <a routerLink="/image">
+                        <i class="pi pi-search"></i>
+                        <span class="label">{{ "lblSearchEngine" | translate }}</span>
+                    </a>
+                </li>
+                <li routerLinkActive="active">
+                    <a routerLink="/loaded-data">
+                        <i class="pi pi-folder-open"></i>
+                        <span class="label">{{ "lblLoadedFoldersSidebar" | translate }}</span>
+                    </a>
+                </li>
+                <li routerLinkActive="active">
+                    <a routerLink="/activity-log">
+                        <i class="pi pi-history"></i>
+                        <span class="label">{{ "lblActivityLog" | translate }}</span>
+                    </a>
+                </li>
+                <li routerLinkActive="active">
+                    <a routerLink="/contact-us">
+                        <i class="pi pi-user"></i>
+                        <span class="label">{{ "lblContactUs" | translate }}</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <button pButton icon="pi pi-bars" class="p-button-text sidebar-toggle" (click)="toggleSidebar()"></button>
+        <main class="content">
+            <router-outlet></router-outlet>
+        </main>
+    </div>
+
+</div>
+
+<!-- ── License Invalid Overlay ───────────────────────────────────────── -->
+<div class="license-overlay" *ngIf="isLicenseInvalid">
+    <div class="license-card">
+
+        <div class="license-card__icon">
+            <i class="pi pi-lock"></i>
+        </div>
+
+        <h3 class="license-card__heading">{{ "lblInvalidLicenseHeading" | translate }}</h3>
+        <p class="license-card__message">{{ verifyLicenseResponse.message }}</p>
+
+        <div class="license-card__code" *ngIf="verifyLicenseResponse.code">
+            <span>Error {{ verifyLicenseResponse.code }}</span>
+        </div>
+
+        <div class="license-card__device" *ngIf="deviceId">
+            <span class="license-card__device-label">Your Device ID</span>
+            <div class="license-card__device-id">
+                <code>{{ deviceId }}</code>
+                <button pButton icon="pi pi-copy" class="p-button-text p-button-sm"
+                    (click)="copyDeviceId()" pTooltip="Copy to clipboard">
+                </button>
+            </div>
+            <span class="license-card__device-hint">
+                Send this to your vendor to receive your license file.
+            </span>
+        </div>
+
+        <div class="license-card__footer">
+            <p class="license-card__contact">{{ "lblInvalidLicenseMessage" | translate }}</p>
+        </div>
+
+    </div>
+</div>
